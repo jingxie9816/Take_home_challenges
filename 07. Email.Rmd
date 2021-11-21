@@ -1,16 +1,14 @@
 ---
-title: "Email"
-author: "Jing"
+title: "07. Email"
+author: "Jing Xie"
 date: "11/20/2021"
 output: pdf_document
 ---
-You are in charge of figuring out how the email campaign performed and were asked the
-following questions:
 1. What percentage of users opened the email and what percentage clicked on the link within the email?
 2. The VP of marketing thinks that it is stupid to send emails to a random subset and in a random way. Based on all the information you have about the emails that were sent, can you build a model to optimize in future email campaigns to maximize the probability of users clicking on the link inside the email?
 3. By how much do you think your model would improve click through rate ( defined as # of users who click on the link / total users who received the email). How would you test that?
 4. Did you find any interesting pattern on how the email campaign performed for different segments of users? Explain.
-# Input libraries needed
+## Input libraries needed
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
@@ -22,7 +20,7 @@ library(ggplot2)
 library(rpart.plot)
 ```
 
-# Input data
+## Input data
 ```{r}
 email_data = read.csv('email_table.csv')
 email_open = read.csv('email_opened_table.csv')
@@ -38,8 +36,8 @@ sum(is.na(email_open))
 sum(is.na(link_click))
 # No missing values
 ```
-# Add two new columns email_data to indicate email_open and link_click.
-# Work out the percentage of users opened the email and clicked on the link within the email.
+## Add two new columns email_data to indicate email_open and link_click.
+## Work out the percentage of users opened the email and clicked on the link within the email.
 ```{r}
 email_data$email_open = ifelse(email_data$email_id %in% email_open$email_id,
                                1, 0 )
@@ -57,8 +55,8 @@ sum(email_data$link_click)/length(email_data$email_id)
 20.48% of all opened emails, the link will be clicked to direct to the website.
 2.119% of all the emails sent, the link will be clicked.
 
-# Build a model to find out the probabilty of click the email based on user characteristic
-# Have a look at the data file
+## Build a model to find out the probabilty of click the email based on user characteristic
+## Have a look at the data file
 ```{r}
 summary(email_data)
 email_data$email_text = as.factor(email_data$email_text)
@@ -69,7 +67,7 @@ email_data$email_open= as.factor(email_data$email_open)
 email_data$link_click= as.factor(email_data$link_click)
 ```
 
-# Split train and test dataset and build a model
+## Split train and test dataset and build a model
 ```{r}
 train_sample = sample(nrow(email_data), size = nrow(email_data)*0.7)
 train_data = email_data[train_sample,]
@@ -109,10 +107,10 @@ plot(perf) + abline(a=0, b=1, col = 'red') # the red line is randomness
 auc_ROCR <- performance(pred, measure = "auc")
 print(auc_ROCR@y.values[[1]])
 ```
-There is only 0.557771 AUC, very bad
-After balancing data, AUC becomes 0.69
+There is only 0.557771 AUC, very bad performance.
+After balancing data, AUC becomes 0.7073413.
 
-# By how much do you think your model would improve click through rate ( defined as # of users who click on the link / total users who received the email). How would you test that?
+## By how much do you think your model would improve click through rate ( defined as # of users who click on the link / total users who received the email). How would you test that?
 ```{r}
 old_ctr = sum(email_data$link_click==1)/length(email_data$email_id)
 old_ctr
@@ -140,8 +138,6 @@ test_lift = test_data %>%
 ggplot(data = test_lift, aes(x = x, y = y)) + geom_line() +
   theme_bw()
 
-pred$predictions
-predictions
 ```
 
 Old click through rate = 2%
@@ -149,14 +145,14 @@ So comparing with randomly selected email pools, this model would improve click 
 
 More precisely, we can conduct a A/B Test to see whether the prediction model actually help increase the click through rate.
 
-# 4. Did you find any interesting pattern on how the email campaign performed for different segments of users? Explain.
+## 4. Did you find any interesting pattern on how the email campaign performed for different segments of users? Explain.
 
 ```{r}
 # Check variance importance:
 varImpPlot(rf,type=2)
 ```
 
-# Let’s check partial dependence plots:
+## Let’s check partial dependence plots:
 ```{r}
 op <- par(mfrow=c(3, 3)) # Put below 6 plots in a 3*3 grid.
 partialPlot(rf, train_data, user_past_purchases, 1) 
@@ -186,7 +182,8 @@ tree
 prp(tree, varlen = 0)
 ```
 Same patten as we saw in random forest partial dependence plot.
-# 4. Did you find any interesting pattern on how the email campaign performed for different segments of users? Explain.
+
+## 4. Did you find any interesting pattern on how the email campaign performed for different segments of users? Explain.
 
 So there can be segments like: 
 US/UK and ES/FR: US/UK has much higher CTR through the email campaign
